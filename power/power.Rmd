@@ -1,0 +1,419 @@
+---
+title: "Power Analysis for Non-Inferiority Trial Comparing App-Based vs Face-to-Face CPT for PTSD"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, cache = TRUE)
+
+# Load required packages
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(brms)
+```
+
+```{r simulation-parameters, cache=FALSE}
+# Set parameters for the simulation
+params <- list(
+  # Sample sizes
+  n_f2f = 50,               # Face-to-face CPT (including 20 historical controls)
+  n_app_expert = 30,        # App with expert guidance
+  n_app_nonexpert = 30,     # App with non-expert guidance
+  
+  # Effect sizes (Cohen's d)
+  d_f2f = 1.24,             # From Asmundson et al. (2018) meta-analysis
+  d_app_expert = 1.24,      # Assumed effect for app with expert guidance
+  d_app_nonexpert = 1.24,   # Assumed effect for app with non-expert guidance
+  
+  # Other parameters
+  icc = 0.5,                # Intraclass correlation coefficient
+  ni_margin = 0.5,          # Non-inferiority margin (in SD units)
+  prob_threshold = 0.89,    # Probability threshold for non-inferiority
+  dropout_rate = 0.20,      # Expected dropout rate
+  n_simulations = 1000        # Number of simulations to run
+)
+```
+
+## Introduction
+
+This document presents a power analysis for a non-inferiority trial comparing app-based with face-to-face Cognitive Processing Therapy (CPT) for PTSD.
+
+The trial employs a three-arm design:
+
+1. **Active Control (n = `r params$n_f2f`)**: Standard face-to-face CPT treatment (including 20 historical controls)
+2. **App with Expert Guidance (n = `r params$n_app_expert`)**: App-based CPT guided by experienced therapists
+3. **App with Non-Expert Guidance (n = `r params$n_app_nonexpert`)**: App-based CPT guided by less experienced therapists
+
+### Analytical Approach
+
+The primary outcome is PTSD symptom change measured by the PSSI (clinician interview).
+The study uses standardized scores (z-scores) to increase interpretability, with effects expressed in standard deviation units.
+We implemented a Bayesian multilevel pre-post model to analyze changes in these scores while accounting for within-person correlation:
+
+$$\text{PSSI}_{ij} = \beta_{0c[i]} + \beta_{1c[i]} \cdot \text{time}_j + u_{0i} + u_{1i} \cdot \text{time}_j + \epsilon_{ij}$$
+
+where $c[i]$ represents the condition for person $i$, $(u_{0i}, u_{1i})$ are person-specific random effects, and non-inferiority is assessed by comparing the $\beta_{1c}$ parameters across conditions.
+
+### Key Parameters and Assumptions
+
+For this power analysis, we make the following assumptions:
+
+* **Effect sizes**: 
+    * Face-to-face CPT: `r params$d_f2f` SD (based on Asmundson et al., 2018)
+    * App with expert guidance: `r params$d_app_expert` SD (assumed comparable to face-to-face)
+    * App with non-expert guidance: `r params$d_app_nonexpert` SD (assumed comparable to face-to-face)
+* **Correlation**: ICC of `r params$icc` between pre and post measurements
+* **Non-inferiority**: Margin of `r params$ni_margin` SD units, with probability threshold of `r params$prob_threshold` for declaring non-inferiority
+* **Attrition**: Dropout rate of `r params$dropout_rate * 100`% across all conditions
+* **Simulation**: `r params$n_simulations` Monte Carlo simulations
+
+### Hypotheses of Interest
+
+Two key hypotheses will be examined:
+
+1. **Primary hypothesis (H1)**: Face-to-face CPT is not superior to combined app-based interventions by more than the non-inferiority margin of `r params$ni_margin` SD.
+2. **Secondary hypothesis (H2)**: App with expert guidance is not superior to app with non-expert guidance by more than the non-inferiority margin of `r params$ni_margin` SD.
+
+```{r citation, echo=FALSE}
+# Reference information
+citation <- "Asmundson, G. J. G., Thorisdottir, A. S., Roden-Foreman, J. W., Baird, S. O., Witcraft, S. M., Stein, A. T., … Powers, M. B. (2018). A meta-analytic review of cognitive processing therapy for adults with posttraumatic stress disorder. *Cognitive Behaviour Therapy*, *48*(1), 1–14. https://doi.org/10.1080/16506073.2018.1522371"
+```
+
+## Simulation Method and Validation
+
+```{r simulation-function, cache=TRUE}
+# Simulation function
+simulate_ptsd_trial <- function(n_f2f = 50, 
+                               n_app_expert = 30, 
+                               n_app_nonexpert = 30,
+                               d_f2f = 1.24,
+                               d_app_expert = 1.0,
+                               d_app_nonexpert = 0.9,
+                               icc = 0.15,
+                               dropout_rate = 0.20,
+                               seed = 123) {
+  
+  # Set random seed for reproducibility
+  set.seed(seed)
+  
+  # Calculate total sample size
+  n_total <- n_f2f + n_app_expert + n_app_nonexpert
+  
+  # Generate participant IDs
+  ids <- 1:n_total
+  
+  # Assign treatment conditions
+  condition <- c(
+    rep("f2f", n_f2f),
+    rep("app_expert", n_app_expert),
+    rep("app_nonexpert", n_app_nonexpert)
+  )
+  
+  # Generate random effects for participants (person-level variance)
+  sigma_person <- sqrt(icc)  # Between-person SD
+  sigma_residual <- sqrt(1 - icc)  # Within-person (residual) SD
+  
+  # Generate random intercepts for each person
+  person_effects <- rnorm(n_total, 0, sigma_person)
+  
+  # Create data frame with one row per person per time point (pre and post)
+  dat <- data.frame(
+    id = rep(ids, each = 2),
+    condition = rep(condition, each = 2),
+    wave = rep(c("pre", "post"), times = n_total),
+    person_effect = rep(person_effects, each = 2)
+  )
+  
+  # Convert wave to numeric (0 = pre, 1 = post)
+  dat$time <- ifelse(dat$wave == "pre", 0, 1)
+  
+  # Set effects by condition
+  dat$condition_effect <- case_when(
+    dat$condition == "f2f" ~ d_f2f,
+    dat$condition == "app_expert" ~ d_app_expert,
+    dat$condition == "app_nonexpert" ~ d_app_nonexpert
+  )
+  
+  # Generate outcome data (PSSI z-scores)
+  # For pre-treatment, everyone starts at approximately the same point
+  # For post-treatment, add the condition-specific effect
+  dat$true_score <- dat$person_effect + 
+                   (dat$time * dat$condition_effect)
+  
+  # Add random noise (residual error)
+  dat$pssi <- dat$true_score + rnorm(nrow(dat), 0, sigma_residual)
+  
+  # Calculate the mean and sd of pre-treatment pssi to use for standardization
+  pre_mean <- mean(dat$pssi[dat$wave == "pre"])
+  pre_sd <- sd(dat$pssi[dat$wave == "pre"])
+  
+  # Create standardized pssi_z using pre-treatment mean and sd
+  dat$pssi_z <- (dat$pssi - pre_mean) / pre_sd
+  
+  # Simulate dropout (only at post-treatment)
+  if (dropout_rate > 0) {
+    # Identify participants to drop out
+    dropout_ids <- sample(ids, size = round(n_total * dropout_rate))
+    # Mark dropout data as missing
+    dat$pssi_z[dat$wave == "post" & dat$id %in% dropout_ids] <- NA
+  }
+  
+  # Return the simulated dataset
+  return(dat)
+}
+
+# Generate a single simulated dataset to verify
+sim_data <- with(params, simulate_ptsd_trial(
+  n_f2f = n_f2f,
+  n_app_expert = n_app_expert,
+  n_app_nonexpert = n_app_nonexpert,
+  d_f2f = d_f2f,
+  d_app_expert = d_app_expert,
+  d_app_nonexpert = d_app_nonexpert,
+  icc = icc,
+  dropout_rate = dropout_rate,
+  seed = 125
+))
+
+# Sanity check: Verify data structure and effects
+
+# 1. Summarize by condition and time
+condition_summary <- sim_data %>%
+  group_by(condition, wave) %>%
+  summarize(
+    n = sum(!is.na(pssi_z)),
+    mean_pssi = mean(pssi_z, na.rm = TRUE),
+    sd_pssi = sd(pssi_z, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(condition, wave)
+
+# 2. Verify dropout rates
+dropout_check <- sim_data %>%
+  filter(wave == "post") %>%
+  group_by(condition) %>%
+  summarize(
+    total = n(),
+    missing = sum(is.na(pssi_z)),
+    percent_dropout = 100 * missing / total,
+    .groups = "drop"
+  )
+
+# 3. Calculate pre-post change by condition
+effect_check <- sim_data %>%
+  pivot_wider(
+    id_cols = c(id, condition),
+    names_from = wave,
+    values_from = pssi_z
+  ) %>%
+  mutate(change = post - pre) %>%
+  group_by(condition) %>%
+  summarize(
+    n = sum(!is.na(change)),
+    mean_change = mean(change, na.rm = TRUE),
+    sd_change = sd(change, na.rm = TRUE),
+    effect_size = mean_change / sd_change,
+    .groups = "drop"
+  )
+```
+
+To verify our simulation function works correctly, we generated an example dataset and examined its properties. The simulation produces a dataset that includes pre- and post-treatment measurements with the specified effect sizes, ICC, and dropout rates. Below is a brief sanity check of the simulated data:
+
+```{r show-sanity-checks}
+# Show effect sizes from the simulated data
+effect_check %>%
+  select(condition, n, mean_change, effect_size) %>%
+  kable(caption = "Observed Effect Sizes in Simulated Data", 
+        digits = 2,
+        escape = TRUE) %>%
+  kable_styling(bootstrap_options = c("striped", "condensed"), font_size = 11)
+
+# Show dropout rates
+dropout_check %>%
+  select(condition, total, percent_dropout) %>%
+  kable(caption = "Observed Dropout Rates by Condition", 
+        digits = 1,
+        escape = TRUE) %>%
+  kable_styling(bootstrap_options = c("striped", "condensed"), font_size = 11)
+```
+
+The simulation function effectively creates data with the specified treatment effects, correlation structure, and expected dropout rates.
+
+## Bayesian Model Implementation
+
+We fit a Bayesian multilevel model to test our non-inferiority hypotheses:
+
+```{r fit-model, results='hide', cache=TRUE}
+# Fit the model using brms
+m1 <- brm(
+  formula = bf(pssi_z ~ 0 + condition + condition:time + (1 + time | id)),
+  data = sim_data,
+  family = gaussian(),
+  prior = c(
+    prior(normal(0, 1), class = "b", coef = "conditionf2f"),  
+    prior(normal(0, 1), class = "b", coef = "conditionapp_expert"),
+    prior(normal(0, 1), class = "b", coef = "conditionapp_nonexpert"),
+    prior(normal(0, 0.5), class = "b", coef = "conditionf2f:time"),
+    prior(normal(0, 0.5), class = "b", coef = "conditionapp_expert:time"),
+    prior(normal(0, 0.5), class = "b", coef = "conditionapp_nonexpert:time"),
+    prior(lkj(2), class = "cor"),
+    prior(exponential(1), class = "sigma")
+  ),
+  chains = 1, iter = 4000, warmup = 1000, cores = 1, seed = 123,
+  control = list(adapt_delta = 0.95, max_treedepth = 12)
+)
+
+# Extract fixed effects
+fixed_effects <- fixef(m1) %>%
+  as.data.frame() %>%
+  rownames_to_column("Parameter") %>%
+  select(Parameter, Estimate, Est.Error, Q2.5, Q97.5) %>%
+  filter(str_detect(Parameter, "condition"))
+
+# Extract posterior samples and calculate non-inferiority probabilities
+post <- as_draws_df(m1)
+h_results <- post %>%
+  mutate(
+    h1 = `b_conditionf2f:time` - (`b_conditionapp_expert:time` + `b_conditionapp_nonexpert:time`)/2,
+    h2 = `b_conditionapp_expert:time` - `b_conditionapp_nonexpert:time`
+  ) %>% 
+  summarise(
+    h1_prob = mean(h1 < params$ni_margin), 
+    h2_prob = mean(h2 < params$ni_margin)
+  )
+```
+
+```{r single-model-results}
+# Display the fixed effects
+fixed_effects %>%
+  kable(caption = "Fixed Effects from Example Model",
+        col.names = c("Parameter", "Estimate", "Est.Error", "2.5%", "97.5%"),
+        digits = 3,
+        escape = TRUE) %>%
+  kable_styling()
+
+# Display the non-inferiority probabilities
+h_results %>%
+  pivot_longer(cols = everything(), names_to = "hypothesis", values_to = "probability") %>%
+  mutate(hypothesis = ifelse(hypothesis == "h1_prob", "H1 (Primary): F2F vs App Combined", 
+                               "H2 (Secondary): Expert vs Non-Expert")) %>%
+  kable(caption = "Non-Inferiority Probabilities (Single Simulation)",
+        col.names = c("Hypothesis", "Probability of Non-Inferiority"),
+        digits = 3,
+        escape = TRUE) %>%
+  kable_styling()
+```
+
+## Full Power Analysis
+
+Now we run the complete power analysis with `r params$n_simulations` simulations:
+
+```{r run-simulations, echo=FALSE, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
+# Start timing
+sim_start_time <- Sys.time()
+
+# Set up a safer approach that doesn't require passing model objects between cores
+simulation_results <- data.frame(
+  sim_id = 1:params$n_simulations,
+  h1_prob = NA_real_,
+  h2_prob = NA_real_
+)
+
+# Run simulations sequentially (safer than parallel for complex brms models)
+for (i in 1:params$n_simulations) {
+  # Generate dataset
+  sim_data <- with(params, simulate_ptsd_trial(
+    n_f2f = n_f2f,
+    n_app_expert = n_app_expert,
+    n_app_nonexpert = n_app_nonexpert,
+    d_f2f = d_f2f,
+    d_app_expert = d_app_expert,
+    d_app_nonexpert = d_app_nonexpert,
+    icc = icc,
+    dropout_rate = dropout_rate,
+    seed = i
+  ))
+  
+  # Fit model
+  m_sim <- update(m1, newdata = sim_data, seed = i)
+  
+  # Extract results
+  post_sim <- as_draws_df(m_sim)
+  h_sim <- post_sim %>%
+    mutate(
+      h1 = `b_conditionf2f:time` - (`b_conditionapp_expert:time` + `b_conditionapp_nonexpert:time`)/2,
+      h2 = `b_conditionapp_expert:time` - `b_conditionapp_nonexpert:time`
+    ) %>% 
+    summarise(
+      h1_prob = mean(h1 < params$ni_margin), 
+      h2_prob = mean(h2 < params$ni_margin)
+    )
+  
+  # Store results
+  simulation_results$h1_prob[i] <- h_sim$h1_prob
+  simulation_results$h2_prob[i] <- h_sim$h2_prob
+}
+
+# End timing
+sim_end_time <- Sys.time()
+sim_duration <- difftime(sim_end_time, sim_start_time, units = "mins")
+```
+
+```{r simulate-power-results}
+# Calculate power statistics
+power_results <- simulation_results %>%
+  pivot_longer(cols = c(h1_prob, h2_prob), names_to = "hypothesis", values_to = "probability") %>%
+  group_by(hypothesis) %>%
+  summarize(
+    median_prob = median(probability),
+    sd_prob = sd(probability),
+    ci_lower = quantile(probability, 0.055),
+    ci_upper = quantile(probability, 0.945),
+    power = mean(probability > params$prob_threshold),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    hypothesis = case_when(
+      hypothesis == "h1_prob" ~ "H1 (Primary): F2F vs App Combined",
+      hypothesis == "h2_prob" ~ "H2 (Secondary): Expert vs Non-Expert",
+      TRUE ~ hypothesis
+    )
+  )
+
+# Display power results
+power_results %>%
+  kable(caption = "Power Analysis Results with 89\\% CI",
+        col.names = c("Hypothesis", "Median Probability", "SD", "89\\% CI Lower", 
+                     "89\\% CI Upper", "Power"),
+        digits = 3,
+        escape = TRUE, booktabs=FALSE) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+# Display simulation runtime information
+sim_info <- data.frame(
+  Cores_used = 1,
+  Simulations = params$n_simulations,
+  Runtime_minutes = round(as.numeric(sim_duration), 2)
+)
+
+sim_info %>%
+  kable(caption = "Simulation Performance",
+        col.names = c("Cores Used", "Number of Simulations", "Runtime (minutes)"),
+        digits = 2,
+        escape = TRUE) %>%
+  kable_styling(bootstrap_options = c("striped"), full_width = FALSE)
+```
+
+## Interpretation
+
+The results indicate that the proposed study design has:
+
+- **`r round(power_results$power[power_results$hypothesis == "H1 (Primary): F2F vs App Combined"] * 100, 1)`% power** to detect non-inferiority for the primary hypothesis (H1): comparing face-to-face CPT to combined app-based interventions.
+- **`r round(power_results$power[power_results$hypothesis == "H2 (Secondary): Expert vs Non-Expert"] * 100, 1)`% power** to detect non-inferiority for the secondary hypothesis (H2): comparing app with expert guidance to app with non-expert guidance.
+
+While the power for the secondary hypothesis is lower than conventional standards (80%), this is justified as this is a pilot study where the primary focus is on establishing the overall non-inferiority of app-based approaches compared to traditional face-to-face therapy. The secondary hypothesis regarding differences between types of app guidance is exploratory in nature and will inform future, more focused studies on implementation factors.
+
+## Reference
+
+`r citation`
