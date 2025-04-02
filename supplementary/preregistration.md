@@ -11,7 +11,7 @@ The study evaluates the app's accessibility, efficacy, and uptake rates compared
 ## 2. Hypotheses
 
 1. The app will demonstrate similar efficacy in symptom reduction compared to equivalent face-to-face CPT treatment for PTSD.
-2. The app's uptake rates will not differ from the typical (???what is typical???) rates reported for PTSD treatments in the field.
+2. The app's dropout rates are expected to align with the average rates reported for guided internet-based treatments.
 3. There will be no difference in treatment efficacy or uptake between experienced therapists and non-experienced therapists.
 
 ---
@@ -96,7 +96,8 @@ To minimize bias, the following blinding procedures will be implemented:
 ### 4.2 Treatment Uptake Variables
 
 1. **Primary Uptake Measure:**
-   * **Participation Rate**: Defined as attendance at scheduled sessions for face-to-face therapy, and completion of treatment units for app-based therapy
+   * **Adherence**: Defined as the number of attended scheduled sessions in face-to-face therapy and the number of completed treatment units in app-based therapy.
+   * **Dropout**: Defined as attending fewer than seven sessions in face-to-face therapy and not completing the core units in app-based therapy.
 
 2. **Exploratory Uptake Measures for App-Based Therapy:**
    * **iiPAS** (Weekly therapist-rated engagement scores)
@@ -115,7 +116,8 @@ To minimize bias, the following blinding procedures will be implemented:
    * Symptom change (PTSD, related symptoms, and well-being) from pre- to post-treatment and pre-treatment to follow-up
    * Rates of reliably changed participants (primary outcome: PTSD symptoms via PSSI and PCL-5)
 2. No significant differences in efficacy or adherence will be observed between the two app arms (expert vs. non-expert guidance)
-3. Dropout rates for app arms will not differ significantly from comparable internet-based PTSD interventions (expected range: 20–40%??????????)
+3. Dropout rates for app arms will not differ significantly from the reported average rate for guided internet-based interventions (expected range: up to 48%; see Koelen et al. 2022)
+
 
 ---
 
