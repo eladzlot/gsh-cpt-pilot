@@ -51,7 +51,7 @@ The primary outcome is PTSD symptom change measured by the PSSI (clinician inter
 The study uses standardized scores (z-scores) to increase interpretability, with effects expressed in standard deviation units.
 We implemented a Bayesian multilevel pre-post model to analyze changes in these scores while accounting for within-person correlation:
 
-$$\text{PSSI}_{ij} = \beta_{0c[i]} + \beta_{1c[i]} \cdot \text{time}_j + u_{0i} + u_{1i} \cdot \text{time}_j + \epsilon_{ij}$$
+$$\text{PSSI}_{ij} = \beta_{0c[i]} + u_{0i} + (\beta_{1c[i]} +  u_{1i}) \cdot \text{time}_j + \epsilon_{ij}$$
 
 where $c[i]$ represents the condition for person $i$, $(u_{0i}, u_{1i})$ are person-specific random effects, and non-inferiority is assessed by comparing the $\beta_{1c}$ parameters across conditions.
 
