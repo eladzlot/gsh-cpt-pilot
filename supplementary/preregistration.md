@@ -46,8 +46,8 @@ Randomization will be conducted in R using the `blockrand` package with block si
 ### 3.2 Sample Size Justification
 
 We performed a power analysis using Monte Carlo simulation of a Bayesian multilevel model to assess the proposed sample size.
-Based on 1000 simulations with anticipated effect sizes derived from meta-analytic findings (Asmundson et al., 2018), the power analysis indicates that with our design, we have 86% power to detect non-inferiority for our primary hypothesis comparing face-to-face CPT to combined app-based interventions.
-For the secondary hypothesis comparing expert vs. non-expert app guidance, power is 65%, which is adequate for this exploratory aim in a pilot study.
+Based on 1000 simulations with anticipated effect sizes derived from meta-analytic findings (Asmundson et al., 2018), the power analysis indicates that with our design, we have 84% power to detect non-inferiority for our primary hypothesis comparing face-to-face CPT to combined app-based interventions.
+For the secondary hypothesis comparing expert vs. non-expert app guidance, power is 75%, which is adequate for this exploratory aim in a pilot study.
 The analysis incorporated an ICC of 0.5 and used a non-inferiority margin of 0.5 standard deviations with a probability threshold of 0.89.
 The full report can be found in the study repository.
 
