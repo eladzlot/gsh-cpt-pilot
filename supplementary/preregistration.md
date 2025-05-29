@@ -20,9 +20,11 @@ The study evaluates the app's accessibility, efficacy, and uptake rates compared
 
 A randomized controlled trial with three arms and a total of 110 participants diagnosed with PTSD based on clinical intake and questionnaires:
 
-1. **Active Control (n = 50):** Participants receive standard face-to-face CPT treatment for PTSD. Data from previously treated patients (n = 20) will be included from historical records.
-2. **Guidance by Experts (n = 30):** Participants undergo therapy using the CPT-based app, guided by experienced therapists (with over two years of experience treating PTSD).
-3. **Guidance by Non-Experts (n = 30):** Participants undergo therapy using the CPT-based app, guided by non-experienced therapists (with less than two years of experience treating PTSD).
+1. **Active Control (n = 50):** Participants receive standard face-to-face CPT treatment for PTSD. This group includes 20 participants from historical records and 30 newly randomized participants.
+
+2. **Expert-Guided App Therapy (n = 30):** Participants use the CPT-based app with guidance from experienced therapists who have completed at least two CPT cases and have a minimum of two years of clinical experience.
+
+3. **Novice-Guided App Therapy (n = 30):** Participants use the CPT-based app with guidance from novice therapists who have no prior CPT experience and start in their first year of clinical practice.
 
 Historical controls will be used to increase statistical power. Sensitivity analyses will be performed to show that they do not differ from randomized sample, and do not significantly change the outcomes.
 
@@ -48,13 +50,13 @@ Randomization will be conducted in R using the `blockrand` package with block si
 We performed a power analysis using Monte Carlo simulation of a Bayesian multilevel model to assess the proposed sample size.
 Based on 1000 simulations with anticipated effect sizes derived from meta-analytic findings (Asmundson et al., 2018), the power analysis indicates that with our design, we have 84% power to detect non-inferiority for our primary hypothesis comparing face-to-face CPT to combined app-based interventions.
 For the secondary hypothesis comparing expert vs. non-expert app guidance, power is 75%, which is adequate for this exploratory aim in a pilot study.
-The analysis incorporated an ICC of 0.5 and used a non-inferiority margin of 0.5 standard deviations with a probability threshold of 0.89.
+The analysis incorporated an ICC of 0.5 and used a non-inferiority margin of 0.5 standard deviations with a probability threshold of 0.89, and expected dropout rate of 20% for all conditions.
 The full report can be found in the study repository.
 
 ### 3.3 Intervention Protocols
 
 **Face-to-Face CPT (Active Control):**
-- Standard 12-session CPT protocol delivered by trained therapists
+- Standard 12-16 session CPT protocol delivered by trained therapists
 - Weekly 50-minute individual sessions
 - Follows manualized CPT with standard worksheets and homework assignments
 
@@ -84,10 +86,10 @@ To minimize bias, the following blinding procedures will be implemented:
    * PTSD symptoms measured by **PSSI** (clinician interview), administered at baseline and post-intervention
 
 2. **Secondary Outcomes:**
-   * Self-reported PTSD symptoms measured by **PCL-5**, administered weekly during treatment and at follow-up assessments one month and six months post-intervention
+   * Self-reported PTSD symptoms measured by **PCL-5**, administered bi-weekly during treatment and at follow-up assessments one month and six months post-intervention
 
 3. **Exploratory Outcomes:**
-   * Additional symptoms and functioning measured monthly:
+   * Additional symptoms and functioning measured monthly (except for the PTCI that is measured bi-weekly):
      * **WSAS** (Work and Social Adjustment Scale)
      * **PHQ-9** (Depression)
      * **GAD-7** (General Anxiety)
