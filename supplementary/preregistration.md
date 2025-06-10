@@ -135,13 +135,13 @@ We will use a Bayesian multilevel piecewise growth model to analyze changes in s
 
 The primary outcome model is specified as:
 
-$$\begin{align}
+\begin{align}
 y_{it} &= (b_{1,\text{condition}} + u_{1i}) \\
        &+ (b_{2,\text{condition}} + u_{2i}) \cdot \min(t, t_{\text{max}}) \\
        &+ (b_{3,\text{condition}} + u_{3i}) \cdot 1_{\{t=\text{fu1}\}} \\
        &+ (b_{4,\text{condition}} + u_{4i}) \cdot 1_{\{t=\text{fu2}\}} \\
        &+ G \cdot \gamma
-\end{align}$$
+\end{align}
 
 Where:
 - $y_{it}$ represents the outcome score for participant $i$ at time $t$
@@ -188,13 +188,13 @@ This model will be used to compare retention rates between treatment conditions 
 
 The primary uptake model is specified as:
 
-$$\begin{align}
+\begin{align}
 \text{time}_i &\sim \text{Weibull}(\lambda_i, k_i) \\
 \log(\lambda_i) &= b_{1,\text{condition}} \\
   &+ b_{2,\text{condition}} \cdot \text{PCL-}z_i \\
   &+ u_{i} \\
 \log(k_i) &= \gamma_{1,\text{condition}}
-\end{align}$$
+\end{align}
 
 Where:
 - $\text{time}_i$ represents the time-to-dropout for participant $i$ (in days from baseline)
