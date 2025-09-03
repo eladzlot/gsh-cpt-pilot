@@ -1,8 +1,21 @@
-# Pre-Registration: Guided Self-Help Cognitive Processing Therapy (GSH CPT) Protocol
+---
+title: "Pre-Registration: Guided Self-Help Cognitive Processing Therapy (GSH-CPT) Protocol"
+subtitle: "Randomized Controlled Trial of Therapist-Guided App-Based CPT vs. Face-to-Face CPT"
+author:
+  - "**Zlotnick Elad** (Trauma Recovery Center, Hebrew University of Jerusalem)"
+  - "Jana Porat (Sheba Medical Center)"
+  - "Shani Yaron (Sheba Medical Center)"
+  - "Jonathan Huppert (Trauma Recovery Center, Hebrew University of Jerusalem)"
+date: "3 September 2025"
+fontsize: 12pt
+geometry: margin=1in
+linestretch: 1.5
+output: pdf_document
+---
 
 ## 1. Research Question
 
-This trial aims to assess the feasibility and efficacy of a therapist-guided CBT-based application designed to improve PTSD symptoms.
+This trial aims to assess the feasibility and efficacy of a therapist-guided CPT-based application designed to improve PTSD symptoms.
 The app primarily follows the Cognitive Processing Therapy (CPT) protocol with extensions to address related areas such as panic attacks.
 The study evaluates the app's accessibility, efficacy, and uptake rates compared to traditional face-to-face therapy, as well as differences between guidance from experienced versus non-experienced therapists.
 
@@ -26,11 +39,9 @@ A randomized controlled trial with three arms and a total of 110 participants di
 
 3. **Novice-Guided App Therapy (n = 30):** Participants use the CPT-based app with guidance from novice therapists who have no prior CPT experience and start in their first year of clinical practice.
 
-Historical controls will be used to increase statistical power. Sensitivity analyses will be performed to show that they do not differ from randomized sample, and do not significantly change the outcomes.
+Historical controls will be used to increase statistical power. They will be selected according to the same criteria as the active controls, and provided the same treatment.  Sensitivity analyses will be performed to show that they do not differ from randomized sample, and do not significantly change the outcomes.
 
-**Randomization:** Participants will be randomized into the three arms using block randomization stratified by initial symptom severity (based on PSSI scores: low or high, with ??????
-as the cutoff point).
-Randomization will be conducted in R using the `blockrand` package with block sizes of 3 to ensure balance across arms while maintaining allocation concealment.
+**Stratification:** We will use block randomization stratified by baseline PDS severity with two fixed levels: Low/Moderate = $\leq47$ and High/Severe = $\geq48$. Stratification is determined at baseline and remains fixed for allocation. Randomization will be conducted in R using the `blockrand` package with block sizes of 3 to ensure balance across arms while maintaining allocation concealment.
 
 ### 3.1 Inclusion and Exclusion Criteria
 
@@ -47,7 +58,7 @@ Randomization will be conducted in R using the `blockrand` package with block si
 
 ### 3.2 Sample Size Justification
 
-We performed a power analysis using Monte Carlo simulation of a Bayesian multilevel model to assess the proposed sample size.
+We performed a power analysis using Monte Carlo simulation of a Bayesian multilevel model to assess the proposed sample size (110 before dropout).
 Based on 1000 simulations with anticipated effect sizes derived from meta-analytic findings (Asmundson et al., 2018), the power analysis indicates that with our design, we have 84% power to detect non-inferiority for our primary hypothesis comparing face-to-face CPT to combined app-based interventions.
 For the secondary hypothesis comparing expert vs. non-expert app guidance, power is 75%, which is adequate for this exploratory aim in a pilot study.
 The analysis incorporated an ICC of 0.5 and used a non-inferiority margin of 0.5 standard deviations with a probability threshold of 0.89, and expected dropout rate of 20% for all conditions.
@@ -86,7 +97,7 @@ To minimize bias, the following blinding procedures will be implemented:
    * PTSD symptoms measured by **PSSI** (clinician interview), administered at baseline and post-intervention
 
 2. **Secondary Outcomes:**
-   * Self-reported PTSD symptoms measured by **PCL-5**, administered bi-weekly during treatment and at follow-up assessments one month and six months post-intervention
+   * Self-reported PTSD symptoms measured by **PCL-5**, administered bi-weekly during treatment and at follow-up assessments three months and six months post-intervention
 
 3. **Exploratory Outcomes:**
    * Additional symptoms and functioning measured monthly (except for the PTCI that is measured bi-weekly):
@@ -99,7 +110,7 @@ To minimize bias, the following blinding procedures will be implemented:
 
 1. **Primary Uptake Measure:**
    * **Adherence**: Defined as the number of attended scheduled sessions in face-to-face therapy and the number of completed treatment units in app-based therapy.
-   * **Dropout**: Defined as attending fewer than seven sessions in face-to-face therapy and not completing the core units in app-based therapy.
+   * **Dropout**: Defined as attending fewer than seven sessions in face-to-face therapy and not completing the core units (1-11) in app-based therapy.
 
 2. **Exploratory Uptake Measures for App-Based Therapy:**
    * **iiPAS** (Weekly therapist-rated engagement scores)
@@ -116,10 +127,9 @@ To minimize bias, the following blinding procedures will be implemented:
 
 1. The app-based therapy will demonstrate comparable efficacy to face-to-face CPT in terms of:
    * Symptom change (PTSD, related symptoms, and well-being) from pre- to post-treatment and pre-treatment to follow-up
-   * Rates of reliably changed participants (primary outcome: PTSD symptoms via PSSI and PCL-5)
+   * Rates of reliably changed participants (primary outcome: PTSD symptoms via PSSI and PCL-5, both with a cutoff of 10 points)
 2. No significant differences in efficacy or adherence will be observed between the two app arms (expert vs. non-expert guidance)
 3. Dropout rates for app arms will not differ significantly from the reported average rate for guided internet-based interventions (expected range: up to 48%; see Koelen et al. 2022)
-
 
 ---
 
@@ -161,7 +171,7 @@ Where:
 The model structure captures three distinct change processes: during treatment and at two follow-up points.
 
 #### Implementation Details
-The model will be fitted using the brms package in R (version 2.19.0 or later), which implements Bayesian multilevel models using Stan.
+The model will be fitted using the brms package in R, which implements Bayesian multilevel models using Stan.
 
 We will use the following specifications:
 - Family: Gaussian with identity link
@@ -225,32 +235,40 @@ We will use weakly informative priors to provide regularization while allowing t
 
 These priors reflect plausible ranges for hazard ratios while allowing sufficient uncertainty to avoid constraining the results.
 
-# 6.4 Statistical Procedures
+### 6.4 Statistical Procedures
 
-## 6.4.1 Model Diagnostics and Validation
+#### 6.4.1 Model Diagnostics and Validation
 We will assess model convergence using R-hat statistics (target < 1.01) and effective sample sizes (target > 400 per parameter).
 Posterior predictive checks will be used to evaluate model fit and identify potential areas of model misspecification.
 
-## 6.4.2 Hypotheses Testing
-Primary hypotheses regarding non-inferiority will be evaluated using posterior distributions and Region of Practical Equivalence (ROPE) analysis.
+#### 6.4.2 Hypotheses Testing
 
-For each non-inferiority hypothesis, we will report:
-1. The posterior mean difference between conditions and its 89% credible interval
-2. The percentage of the posterior distribution falling within the ROPE
-3. The probability that the experimental condition is not inferior to the reference condition
+We will interpret the standardized mean difference between conditions ($\Delta$, App - F2F) using a Bayesian non-inferiority framework.
 
-We define our ROPE as [-0.2, 0.2] standard deviations of the outcome measure.
-This represents the range of differences between conditions that are considered clinically negligible.
+* **Primary test (non-inferiority):**
+  Non-inferiority will be concluded if
 
-Non-inferiority will be concluded if at least 89% of the posterior distribution of the difference between conditions falls above the lower bound of the ROPE (-0.2).
+  $$ \Pr(\Delta > -0.5 \,\text{SD} \mid \text{data}) \;\geq\; 0.89, $$
 
-## 6.4.3 Missing Data Handling
+  consistent with the power analysis margin of -0.5 SD.
+
+* **Sensitivity check (stricter margin):**
+  We will repeat the same test with a margin of -0.3 SD. This probes robustness under a more conservative definition of “not worse.”
+
+* **Exploratory equivalence (ROPE):**
+  As an additional exploratory analysis, we will treat differences smaller than ±0.2 SD as clinically negligible. Equivalence will be concluded if
+
+  $$ \Pr(-0.2 < \Delta < 0.2 \,\text{SD} \mid \text{data}) \;\geq\; 0.89. $$
+
+For each test we will report posterior means, 89% credible intervals, posterior probabilities relative to the thresholds above, and raw-scale translations (PCL-5, PSSI points) for clinical interpretation.
+
+#### 6.4.3 Missing Data Handling
 Bayesian methods naturally handle missing data through the joint modeling of observed and missing values.
 For all analyses, we will assume data are missing at random (MAR).
 This is reasonable given that we are always controlling for baseline severity.
 
-## 6.4.4 Software Implementation
-All analyses will be conducted in R (version 4.2.0 or later) using the following packages:
+#### 6.4.4 Software Implementation
+All analyses will be conducted in R (version 4.2.0 or later) using the following packages or equivalent tools:
 - `brms` (version 2.18.0 or later) for Bayesian regression models
 - `bayesplot` (version 1.9.0 or later) for visualization of posterior distributions
 - `tidybayes` (version 3.0.0 or later) for handling and summarizing posterior samples
